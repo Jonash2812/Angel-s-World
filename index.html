@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="tl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Angel’s World</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --pink: #ffb3c1; --red: #ff4d6d; --gold: #ffb700; --purple: #9d4edd;
+            --glass: rgba(255, 255, 255, 0.9); --neon: 0 0 15px rgba(255, 77, 109, 0.5);
+            --bg-color: #fff0f3;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Quicksand', sans-serif; -webkit-tap-highlight-color: transparent; }
+        
+        body { 
+            background: var(--bg-color); height: 100dvh; width: 100vw; overflow: hidden; color: #444;
+            transition: background 2s ease;
+        }
+
+        /* --- BACKGROUND PARTICLES --- */
+        #particles { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+        .particle { position: absolute; color: var(--pink); opacity: 0.5; animation: floatUp 5s linear infinite; }
+        @keyframes floatUp { from { transform: translateY(100vh) rotate(0deg); opacity: 1; } to { transform: translateY(-10vh) rotate(360deg); opacity: 0; } }
+
+        /* --- INTRO CINEMATIC --- */
+        #intro-overlay {
+            position: fixed; inset: 0; background: #fff; z-index: 9999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            padding: 30px; text-align: center; transition: 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .intro-text { position: absolute; opacity: 0; transform: translateY(20px); transition: 1s; max-width: 80%; display: none; font-size: 1.2rem; }
+        .intro-text.active { opacity: 1; transform: translateY(0); display: block; }
+        .highlight { color: var(--red); font-weight: 700; text-shadow: var(--neon); }
+
+        /* --- GLASS HUD --- */
+        .hud { 
+            height: 100px; padding: 10px 25px; display: flex; justify-content: space-between; align-items: center; 
+            background: var(--glass); backdrop-filter: blur(25px); border-bottom: 2px solid rgba(255,255,255,0.5); 
+            z-index: 1000; position: relative; box-shadow: 0 4px 30px rgba(0,0,0,0.05);
+        }
+        .rank-container { display: flex; flex-direction: column; gap: 4px; }
+        .rank-badge { 
+            background: linear-gradient(45deg, var(--red), var(--pink)); color: white; 
+            padding: 4px 12px; border-radius: 20px; font-weight: 700; font-size: 10px; 
+            box-shadow: var(--neon); letter-spacing: 1px;
+        }
+
+        /* --- MAIN OS CONTAINER --- */
+        #os-window {
+            position: relative; width: clamp(340px, 92vw, 500px); height: calc(100dvh - 210px);
+            margin: 15px auto; background: var(--glass); backdrop-filter: blur(30px); border-radius: 40px;
+            border: 5px solid white; box-shadow: 0 20px 50px rgba(255, 77, 109, 0.2); 
+            display: flex; flex-direction: column; overflow: hidden; z-index: 5;
+        }
+
+        .view { display: none; padding: 25px; height: 100%; overflow-y: auto; scroll-behavior: smooth; }
+        .view.active { display: block; animation: viewEnter 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes viewEnter { from { opacity: 0; transform: scale(0.95) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+
+        /* --- BEAUTIFUL COMPONENTS --- */
+        .card { 
+            background: white; border-radius: 25px; padding: 20px; margin-bottom: 15px; 
+            border: 1px solid rgba(255, 179, 193, 0.3); box-shadow: 0 10px 20px rgba(0,0,0,0.02);
+            transition: 0.3s;
+        }
+        .card:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(255, 77, 109, 0.1); }
+
+        .btn-divine {
+            background: linear-gradient(135deg, var(--red), #ff758c); color: white; border: none;
+            padding: 14px 28px; border-radius: 20px; font-weight: 700; cursor: pointer;
+            transition: 0.3s; box-shadow: 0 8px 15px rgba(255, 77, 109, 0.3);
+            text-transform: uppercase; font-size: 12px; letter-spacing: 1px;
+        }
+        .btn-divine:active { transform: scale(0.95); }
+        .btn-divine:disabled { background: #dcdcdc; box-shadow: none; cursor: not-allowed; }
+
+        /* --- CLAW MACHINE STYLING --- */
+        .machine-container {
+            background: linear-gradient(180deg, #fff 0%, #ffeef2 100%);
+            border: 4px solid var(--pink); border-radius: 35px; padding: 30px; position: relative;
+            box-shadow: inset 0 0 30px rgba(255, 179, 193, 0.4);
+        }
+        .claw-head { font-size: 60px; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.1)); }
+        .shaking { animation: clawShake 0.5s infinite linear; }
+        @keyframes clawShake { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(10deg); } 75% { transform: rotate(-10deg); } }
+
+        /* --- SHOP & INVENTORY GRID --- */
+        .grid-ui { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        .item-tile {
+            background: white; border-radius: 20px; padding: 12px; font-size: 10px; font-weight: 700;
+            border: 2px solid #f8f8f8; transition: 0.3s; position: relative;
+        }
+        .rarity-common { border-color: #eee; }
+        .rarity-rare { border-color: #3498db; background: #f0f7ff; color: #3498db; }
+        .rarity-epic { border-color: var(--purple); background: #f9f0ff; color: var(--purple); }
+        .rarity-legendary { border-color: var(--gold); background: #fffdf0; color: var(--gold); animation: pulseGold 2s infinite; }
+        @keyframes pulseGold { 0% { box-shadow: 0 0 0px var(--gold); } 50% { box-shadow: 0 0 15px var(--gold); } 100% { box-shadow: 0 0 0px var(--gold); } }
+
+        /* --- DOCK BAR --- */
+        .dock {
+            position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%);
+            background: rgba(255,255,255,0.9); backdrop-filter: blur(15px);
+            padding: 12px 35px; border-radius: 50px; display: flex; gap: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1); border: 2px solid white; z-index: 2000;
+        }
+        .dock-item { font-size: 28px; cursor: pointer; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .dock-item:hover { transform: translateY(-15px) scale(1.3); }
+
+        /* --- UTILS --- */
+        #toast { 
+            position: fixed; top: 120px; left: 50%; transform: translateX(-50%); 
+            background: var(--red); color: white; padding: 12px 30px; border-radius: 50px;
+            font-weight: 700; opacity: 0; z-index: 9999; pointer-events: none; transition: 0.4s;
+            box-shadow: 0 10px 20px rgba(255, 77, 109, 0.3);
+        }
+
+        progress { width: 100%; height: 8px; border-radius: 5px; appearance: none; }
+        progress::-webkit-progress-bar { background: #eee; border-radius: 5px; }
+        progress::-webkit-progress-value { background: var(--red); border-radius: 5px; transition: 0.5s; }
+        .xp-p::-webkit-progress-value { background: var(--gold); }
+
+        /* --- ACHIEVEMENTS POPUP --- */
+        #achieve-popup {
+            position: fixed; bottom: 100px; right: -300px; width: 250px;
+            background: white; border-left: 5px solid var(--gold); padding: 15px;
+            border-radius: 15px 0 0 15px; box-shadow: -5px 5px 20px rgba(0,0,0,0.1);
+            transition: 0.5s; z-index: 3000;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="particles"></div>
+    <div id="toast">Magic! ✨</div>
+    <div id="achieve-popup">
+        <small style="color:var(--gold); font-weight:700;">ACHIEVEMENT UNLOCKED!</small>
+        <p id="achieve-text" style="font-size:12px; font-weight:700;"></p>
+    </div>
+
+    <div id="intro-overlay">
+        <div class="intro-text" id="t1">Sa <span class="highlight">Caloocan</span> nagsimula ang lahat...<br>Isang grade 6 student na may kakaibang charm.</div>
+        <div class="intro-text" id="t2">Ang iyong <span class="highlight">saturated uniform</span>,<br>ang naging simula ng aking pangarap.</div>
+        <div class="intro-text" id="t3">Hindi man naging madali ang paghihintay,<br>ikaw pa rin ang pinili ng aking puso.</div>
+        <div class="intro-text" id="t4">Ngayon, sa bawat <span class="highlight">4 AM</span> na puyatan,<br>binubuo natin ang ating sariling mundo.<br><br><button class="btn-divine" onclick="launchOS()">ENTER EMPORIUM</button></div>
+    </div>
+
+    <div class="hud">
+        <div class="rank-container">
+            <div id="rank-tag" class="rank-badge">LOADING...</div>
+            <div style="font-size:12px; font-weight:700;">⭐ <span id="stars-val">0</span> | LVL <span id="lvl-val">1</span></div>
+        </div>
+        <div style="text-align:center;">
+            <div id="digital-clock" style="font-size:22px; font-weight:700; color:var(--red);">00:00</div>
+            <progress id="xp-bar" class="xp-p" value="0" max="100"></progress>
+        </div>
+        <div style="text-align:right; width: 80px;">
+            <div style="font-size:10px; font-weight:700;">MILK: <span id="milk-val">100</span>%</div>
+            <progress id="milk-bar" value="100" max="100"></progress>
+        </div>
+    </div>
+
+    <div id="os-window">
+        <div id="view-home" class="view active">
+            <h2 style="color:var(--red); font-weight:700; letter-spacing:-1px;">Angel’s Interface</h2>
+            <p style="font-size:12px; opacity:0.6; margin-bottom:20px;">Welcome back, Baby.</p>
+            
+            <div class="grid-ui" style="margin-bottom:20px;">
+                <div class="item-tile" onclick="openApp('view-gacha')">🎡<br>CLAW</div>
+                <div class="item-tile" onclick="openApp('view-shop')">🏪<br>SHOP</div>
+                <div class="item-tile" onclick="openApp('view-inv')">🎒<br>SHELF</div>
+                <div class="item-tile" onclick="openApp('view-battle')">⚔️<br>LABAN</div>
+                <div class="item-tile" onclick="openApp('view-catalog')">📖<br>LIST</div>
+                <div class="item-tile" onclick="openApp('view-diary')">📓<br>DIARY</div>
+            </div>
+
+            <div class="card">
+                <p style="font-size:13px; font-weight:700;">"Effort is the currency of love."</p>
+                <button class="btn-divine" style="width:100%; margin-top:15px;" onclick="doEffort()">MAG-EFFORT (+30 XP)</button>
+            </div>
+        </div>
+
+        <div id="view-gacha" class="view">
+            <h2 style="color:var(--red)">Kitty Claw Machine</h2>
+            <div class="machine-container" style="margin-top:20px;">
+                <div id="claw-obj" class="claw-head">🏗️</div>
+                <button id="pull-btn" class="btn-divine" onclick="pullPlushie()">HULUHIN NA (50 ⭐)</button>
+            </div>
+            <div id="gacha-result" style="margin-top:20px; font-weight:700; min-height:40px;"></div>
+        </div>
+
+        <div id="view-shop" class="view">
+            <h2 style="color:var(--red)">Arsenal & Buffs</h2>
+            <div id="shop-container" style="margin-top:20px;"></div>
+        </div>
+
+        <div id="view-inv" class="view">
+            <h2 style="color:var(--red)">Your Shelf</h2>
+            <p style="font-size:11px; margin-bottom:15px;">Sell for XP or keep for luck.</p>
+            <div id="inv-grid" class="grid-ui"></div>
+        </div>
+
+        <div id="view-battle" class="view">
+            <h2 style="color:var(--red)">Relationship Defense</h2>
+            <div class="card" style="margin-top:20px; text-align:center;">
+                <div style="font-size:50px;">👹</div>
+                <p style="font-weight:700; margin:10px 0;">MANG-AAGAW HP: <span id="ehp-val">100</span>%</p>
+                <progress id="ehp-bar" value="100" max="100"></progress>
+            </div>
+            <div id="battle-arsenal" class="grid-ui" style="margin-top:15px;"></div>
+        </div>
+
+        <div id="view-catalog" class="view">
+            <h2 style="color:var(--red)">Plushie Catalog</h2>
+            <p id="completion-rate" style="font-size:12px; font-weight:700; color:var(--gold);"></p>
+            <div id="catalog-list" style="margin-top:20px; text-align:left; font-size:11px; columns:2;"></div>
+        </div>
+
+        <div id="view-diary" class="view">
+            <h2 style="color:var(--red)">Memory Diary</h2>
+            <div id="diary-logs" style="margin-top:20px; text-align:left; font-size:12px; line-height:1.6;"></div>
+        </div>
+    </div>
+
+    <div class="dock">
+        <div class="dock-item" onclick="openApp('view-home')">🏠</div>
+        <div class="dock-item" onclick="openApp('view-gacha')">🎡</div>
+        <div class="dock-item" onclick="viewInv()">🎒</div>
+        <div class="dock-item" onclick="openApp('view-battle')">⚔️</div>
+    </div>
+
+    <script>
+        // --- CORE DATABASE ---
+        const MASTER_PLUSHIES = [];
+        const prefixes = ["Angel", "Space", "Classic", "Cyber", "Kawaii", "Vampire", "Royal", "Galaxy", "Pastel", "Golden"];
+        const suffixes = ["Kitty", "Plushie", "Softie", "Partner"];
+        for(let i=1; i<=100; i++) {
+            let rarity = i > 95 ? {t:"Legendary", xp:800, color:"#ffb700"} : i > 80 ? {t:"Epic", xp:300, color:"#9d4edd"} : i > 50 ? {t:"Rare", xp:100, color:"#3498db"} : {t:"Common", xp:40, color:"#888"};
+            MASTER_PLUSHIES.push({ id: i, name: `${prefixes[i % 10]} ${suffixes[i % 4]} #${i}`, rarity: rarity });
+        }
+
+        const SHOP_MOVES = [
+            { id: 0, name: "Uniform Slash", dmg: 35, price: 60, desc: "Saturated strike." },
+            { id: 1, name: "Baby Kick", dmg: 70, price: 180, desc: "Power of my baby ." },
+            { id: 2, name: "Jeepney Ram", dmg: 120, price: 500, desc: "Monument-style smash." },
+            { id: 3, name: "4AM Pulse", dmg: 250, price: 1200, desc: "Energy of puyat." },
+            { id: 4, name: "Saturated Nova", dmg: 600, price: 3000, desc: "The ultimate loyalty." }
+        ];
+
+        // --- STATE ENGINE ---
+                let state = JSON.parse(localStorage.getItem('angelos_transcend_save')) || {
+            stars: 200, lvl: 1, xp: 0, milk: 100, inv: [], ownedMoves: [0], ehp: 100,
+            discovered: [], logs: ["Nagsimula ang paglalakbay sa AngelOS."],
+            ranks: ["Classmate", "Seatmate", "Talk Buddy", "Saturated Admirer", "4 AM Warrior", "Loyal Suitor", "Angel's Defender", "Kilig Master", "Almost Husband", "Legendary Hubby"]
+        };
+        for(let i=11; i<=100; i++) state.ranks.push("Eternal Protector Rank " + i);
+
+        // --- INITIALIZATION ---
+        function initParticles() {
+            const container = document.getElementById('particles');
+            for(let i=0; i<15; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                p.innerHTML = ['❤️', '✨', '🌸', '☁️'][Math.floor(Math.random()*4)];
+                p.style.left = Math.random() * 100 + 'vw';
+                p.style.animationDelay = Math.random() * 5 + 's';
+                p.style.fontSize = Math.random() * 20 + 10 + 'px';
+                container.appendChild(p);
+            }
+        }
+
+        let introIdx = 1;
+        function playIntro() {
+            const current = document.getElementById('t' + introIdx);
+            if(current) {
+                current.classList.add('active');
+                if(introIdx < 4) {
+                    setTimeout(() => { current.classList.remove('active'); introIdx++; playIntro(); }, 3500);
+                }
+            }
+        }
+
+        function launchOS() {
+            document.getElementById('intro-overlay').style.transform = 'scale(1.5)';
+            document.getElementById('intro-overlay').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('intro-overlay').remove();
+                vibe(50);
+                updateUI();
+            }, 1000);
+        }
+
+        // --- CORE FUNCTIONS ---
+        function openApp(id) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            if(id === 'view-shop') renderShop();
+            if(id === 'view-battle') renderBattle();
+            if(id === 'view-catalog') renderCatalog();
+            if(id === 'view-diary') renderDiary();
+            vibe(10);
+        }
+
+        function pullPlushie() {
+            if(state.stars < 50) return toast("Kulang ang iyong Stars! ⭐");
+            state.stars -= 50;
+            const btn = document.getElementById('pull-btn');
+            const claw = document.getElementById('claw-obj');
+            const res = document.getElementById('gacha-result');
+            
+            btn.disabled = true; claw.classList.add('shaking');
+            res.innerText = "Naghahanap ng plushie..."; vibe(100);
+
+            setTimeout(() => {
+                claw.classList.remove('shaking');
+                const win = MASTER_PLUSHIES[Math.floor(Math.random() * 100)];
+                state.inv.push(win);
+                if(!state.discovered.includes(win.id)) {
+                    state.discovered.push(win.id);
+                    addLog(`Nadiskubre ang bago mong plushie: ${win.name}!`);
+                }
+                res.innerHTML = `Nakuha mo: <span style="color:${win.rarity.color}">${win.name}</span>!`;
+                claw.innerText = "🎁"; btn.disabled = false;
+                save(); updateUI(); vibrate([50, 30, 50]);
+            }, 1800);
+        }
+
+        function renderShop() {
+            const container = document.getElementById('shop-container');
+            container.innerHTML = "";
+            SHOP_MOVES.forEach(m => {
+                const owned = state.ownedMoves.includes(m.id);
+                container.innerHTML += `
+                    <div class="shop-card" style="display:flex; justify-content:space-between; align-items:center; background:white; padding:15px; border-radius:20px; margin-bottom:10px; border:1px solid #eee;">
+                        <div style="text-align:left;">
+                            <b style="color:var(--red)">${m.name}</b><br>
+                            <small style="font-size:9px; opacity:0.6;">${m.desc} | DMG: ${m.dmg}</small>
+                        </div>
+                        ${owned ? `<span style="font-size:10px; font-weight:700; color:#ccc;">OWNED</span>` : `<button class="btn-divine" style="padding:8px 15px; font-size:10px;" onclick="buyMove(${m.id}, ${m.price})">${m.price} ⭐</button>`}
+                    </div>
+                `;
+            });
+        }
+
+        function buyMove(id, price) {
+            if(state.stars >= price) {
+                state.stars -= price; state.ownedMoves.push(id);
+                addLog(`Bumili ng bagong attack: ${SHOP_MOVES[id].name}.`);
+                save(); renderShop(); updateUI(); toast("Move purchased! ⚔️");
+            } else toast("Kulang ang Stars! ⭐");
+        }
+
+        function viewInv() {
+            openApp('view-inv');
+            const grid = document.getElementById('inv-grid');
+            grid.innerHTML = state.inv.length === 0 ? "<p style='grid-column:1/4; opacity:0.5; padding:20px;'>Walang laman ang shelf.</p>" : "";
+            state.inv.forEach((item, idx) => {
+                grid.innerHTML += `
+                    <div class="item-tile rarity-${item.rarity.t.toLowerCase()}">
+                        ${item.name}<br><small>${item.rarity.t}</small>
+                        <button onclick="sell(${idx})" style="width:100%; border:none; background:#444; color:white; font-size:8px; border-radius:5px; margin-top:5px; padding:3px;">SELL ${item.rarity.xp}XP</button>
+                    </div>`;
+            });
+        }
+
+        function sell(idx) {
+            const item = state.inv[idx];
+            state.xp += item.rarity.xp;
+            state.inv.splice(idx, 1);
+            checkLevel(); viewInv(); updateUI(); save();
+        }
+
+        function renderBattle() {
+            const arsenal = document.getElementById('battle-arsenal');
+            arsenal.innerHTML = "";
+            state.ownedMoves.forEach(mid => {
+                const m = SHOP_MOVES.find(x => x.id === mid);
+                arsenal.innerHTML += `<button class="btn-divine" style="font-size:9px; padding:12px 5px;" onclick="attack(${m.dmg}, '${m.name}')">${m.name}</button>`;
+            });
+        }
+
+        function attack(dmg, name) {
+            if(state.milk < 20) return toast("Kailangan mo ng Milk! 🥛");
+            let isCrit = Math.random() < 0.15;
+            let finalDmg = isCrit ? dmg * 2 : dmg;
+            state.ehp -= finalDmg; state.milk -= 20;
+            vibe(isCrit ? 100 : 40);
+            toast(`${isCrit ? 'CRITICAL! ' : ''}${name} hit for ${finalDmg}%!`);
+            
+            if(state.ehp <= 0) {
+                state.ehp = 100; state.stars += 150; state.xp += 30;
+                addLog("Tinalo ang isang mang-aagaw! +150 ⭐");
+                checkLevel(); toast("Victory! +150 ⭐");
+            }
+            save(); updateUI();
+        }
+
+        function doEffort() {
+            if(state.milk >= 15) {
+                state.xp += 30; state.milk -= 15;
+                checkLevel(); updateUI(); save(); vibe(30);
+            } else toast("Pagod ka na, inom muna gatas. 🥛");
+        }
+
+        function checkLevel() {
+            while(state.xp >= 100) {
+                state.lvl++; state.xp -= 100;
+                addLog(`Level Up! Naabot ang Rank: ${state.ranks[state.lvl-1]}`);
+                unlockAchievement(`Rank Unlocked: ${state.ranks[state.lvl-1]}`);
+                vibe([100, 50, 100]);
+            }
+        }
+
+        function renderCatalog() {
+            const list = document.getElementById('catalog-list');
+            document.getElementById('completion-rate').innerText = `Completion: ${state.discovered.length}/100`;
+            list.innerHTML = MASTER_PLUSHIES.map(p => {
+                const found = state.discovered.includes(p.id);
+                return `<div style="opacity:${found?1:0.3}">${found ? '✅ '+p.name : '❓ ???'}</div>`;
+            }).join('');
+        }
+
+        function renderDiary() {
+            const logs = document.getElementById('diary-logs');
+            logs.innerHTML = state.logs.slice().reverse().map(l => `<div style="border-left:2px solid var(--pink); padding-left:10px; margin-bottom:8px;">${l}</div>`).join('');
+        }
+
+        // --- ENGINE UTILS ---
+        function updateUI() {
+            document.getElementById('stars-val').innerText = state.stars;
+            document.getElementById('lvl-val').innerText = state.lvl;
+            document.getElementById('xp-bar').value = state.xp;
+            document.getElementById('milk-val').innerText = state.milk;
+            document.getElementById('milk-bar').value = state.milk;
+            document.getElementById('ehp-val').innerText = state.ehp;
+            document.getElementById('ehp-bar').value = state.ehp;
+            document.getElementById('rank-tag').innerText = (state.ranks[state.lvl-1] || "TRANSCENDENT").toUpperCase();
+            
+            // Dynamic Sky Colors
+            const hour = new Date().getHours();
+            if(hour >= 18 || hour < 5) document.body.style.background = "#1a1a2e";
+            else if(hour >= 16) document.body.style.background = "#ff9a9e";
+            else document.body.style.background = "#fff0f3";
+        }
+
+        function addLog(msg) {
+            const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            state.logs.push(`[${time}] ${msg}`);
+            if(state.logs.length > 50) state.logs.shift();
+        }
+
+        function unlockAchievement(text) {
+            const pop = document.getElementById('achieve-popup');
+            document.getElementById('achieve-text').innerText = text;
+            pop.style.right = '0px';
+            setTimeout(() => { pop.style.right = '-300px'; }, 4000);
+        }
+
+        function save() { localStorage.setItem('angelos_transcend_save', JSON.stringify(state)); }
+        function toast(m) { const t = document.getElementById('toast'); t.innerText = m; t.style.opacity = '1'; setTimeout(()=>t.style.opacity='0', 2500); }
+        function vibe(ms) { if(navigator.vibrate) navigator.vibrate(ms); }
+
+        setInterval(() => {
+            const d = new Date();
+            document.getElementById('digital-clock').innerText = d.getHours().toString().padStart(2,'0') + ":" + d.getMinutes().toString().padStart(2,'0');
+            if(state.milk < 100) { state.milk = Math.min(100, state.milk + 1); updateUI(); }
+        }, 1000);
+
+        // --- START ---
+        initParticles();
+        playIntro();
+        updateUI();
+
+    </script>
+</body>
+</html>
