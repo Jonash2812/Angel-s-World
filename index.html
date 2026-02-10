@@ -480,6 +480,41 @@ if ('serviceWorker' in navigator) {
             .catch(err => console.log('Offline System: Failed', err));
     });
 }
+
+// Variable para sa audio state
+let isAmbienceOn = false;
+
+function initOS() {
+    // 1. Audio Trigger (Dapat mauna ito para ma-capture ang user gesture)
+    if (!isAmbienceOn) {
+        ProAudio.init(); // Initialize ang engine
+        ProAudio.toggle(true); // I-play agad
+        isAmbienceOn = true;
+        
+        // Update ang UI kung may button ka
+        const visual = document.getElementById('audio-visual');
+        const text = document.getElementById('audio-text');
+        if(text) text.innerText = "AMBIENCE_ACTIVE";
+        if(visual) {
+            visual.style.background = "var(--gold)";
+            visual.style.boxShadow = "0 0 10px var(--gold)";
+            visual.style.animation = "pulse-glow 2s infinite";
+        }
+    }
+
+    // 2. Visual Transitions
+    document.getElementById('prologue').style.opacity = '0';
+    document.getElementById('prologue').style.pointerEvents = 'none';
+    
+    // 3. System Initialization
+    updateDisplay();
+    initStars();
+    
+    // Opsyonal: I-log ang event
+    if(sys && sys.history) sys.history.push("NEURAL_AUDIO_LINK_ESTABLISHED");
+}
+
+
         
     </script>
 </body>
