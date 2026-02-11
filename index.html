@@ -314,7 +314,9 @@ const UISound = (() => {
         function launchOS() {
 UISound.playClick(); // Dito magsisimulang mabuhay ang audio context
     ProAudio.init(); 
-    ProAudio.toggle(true);        
+    ProAudio.toggle(true); 
+
+        // NEXT   
             document.getElementById('intro-overlay').style.transform = 'scale(1.5)';
             document.getElementById('intro-overlay').style.opacity = '0';
             setTimeout(() => {
