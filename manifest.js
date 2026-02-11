@@ -1,2 +1,0 @@
-"display": "standalone",
-"start_url": "./index.html"
