@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="tl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#ffb3c1">
+    <title>Angel’s World: Ethereal Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --pink: #ffb3c1; --dark-pink: #ff8fa3; --red: #ff4d6d; 
+            --gold: #ffd700; --purple: #c77dff; --blue: #a2d2ff;
+            --glass: rgba(255, 255, 255, 0.65); 
+            --glass-border: rgba(255, 255, 255, 0.8);
+            --shadow: 0 8px 32px 0 rgba(255, 77, 109, 0.15);
+            --bg-gradient: linear-gradient(135deg, #fff0f3 0%, #ffe5ec 100%);
+            --safe-top: env(safe-area-inset-top);
+            --safe-bottom: env(safe-area-inset-bottom);
+        }
+
+        * { 
+            box-sizing: border-box; margin: 0; padding: 0; 
+            font-family: 'Quicksand', sans-serif; 
+            -webkit-tap-highlight-color: transparent; 
+            user-select: none;
+        }
+        
+        body { 
+            background: var(--bg-gradient); height: 100dvh; width: 100vw; overflow: hidden; color: #444;
+            transition: background 2s ease;
+            padding-top: var(--safe-top); padding-bottom: var(--safe-bottom);
+        }
+
+        /* --- CRT VINTAGE OVERLAY --- */
+        body::after {
+            content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 999;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.03) 50%);
+            background-size: 100% 4px; pointer-events: none;
+        }
+
+        /* --- BACKGROUND PARTICLES --- */
+        #particles { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+        .particle { 
+            position: absolute; filter: blur(1px);
+            animation: floatUp 8s linear infinite; 
+        }
+        @keyframes floatUp { 
+            0% { transform: translateY(110vh) rotate(0deg) scale(0.8); opacity: 0; } 
+            20% { opacity: 0.6; }
+            100% { transform: translateY(-10vh) rotate(360deg) scale(1.2); opacity: 0; } 
+        }
+
+        /* --- INTRO CINEMATIC --- */
+        #intro-overlay {
+            position: fixed; inset: 0; background: rgba(255,255,255,0.95); z-index: 9999;
+            backdrop-filter: blur(20px);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            padding: 30px; text-align: center; transition: all 1s ease;
+        }
+        .intro-text { 
+            position: absolute; opacity: 0; transform: translateY(30px); 
+            transition: 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); 
+            max-width: 85%; display: none; font-size: 1.3rem; line-height: 1.6;
+        }
+        .intro-text.active { opacity: 1; transform: translateY(0); display: block; }
+        .highlight { 
+            color: var(--red); font-weight: 800; 
+            text-shadow: 0 0 20px rgba(255, 77, 109, 0.4); 
+            font-size: 1.4rem;
+        }
+
+        /* --- NEO-GLASS HUD --- */
+        .hud { 
+            height: 90px; padding: 0 20px; 
+            display: flex; justify-content: space-between; align-items: center; 
+            background: rgba(255, 255, 255, 0.4); 
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            border-bottom: 1px solid rgba(255,255,255,0.6); 
+            z-index: 1000; position: relative; 
+            box-shadow: 0 5px 20px rgba(0,0,0,0.03);
+            margin-top: 5px;
+        }
+        
+        .rank-badge { 
+            background: linear-gradient(135deg, var(--red), var(--pink)); color: white; 
+            padding: 5px 15px; border-radius: 20px; font-weight: 800; font-size: 9px; 
+            box-shadow: 0 4px 15px rgba(255, 77, 109, 0.4); letter-spacing: 1.5px;
+            animation: pulse-glow 3s infinite;
+        }
+
+        /* --- MAIN OS CONTAINER --- */
+        #os-window {
+            position: relative; width: clamp(340px, 94vw, 600px); 
+            height: calc(100dvh - 190px);
+            margin: 10px auto; 
+            background: rgba(255, 255, 255, 0.5); 
+            backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
+            border-radius: 35px;
+            border: 2px solid rgba(255, 255, 255, 0.8); 
+            box-shadow: var(--shadow);
+            display: flex; flex-direction: column; overflow: hidden; z-index: 5;
+        }
+
+        .view { display: none; padding: 25px; height: 100%; overflow-y: auto; scroll-behavior: smooth; }
+        /* Smooth Entrance Animation */
+        .view.active { 
+            display: block; 
+            animation: sl0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+        }
+        @keyframes slideIn { 
+            from { opacity: 0; transform: translateY(30px) scale(0.98); } 
+            to { opacity: 1; transform: translateY(0) scale(1); } 
+        }
+
+        /* --- UI COMPONENTS --- */
+        .card { 
+            background: rgba(255, 255, 255, 0.8); border-radius: 25px; padding: 20px; 
+            margin-bottom: 15px; border: 1px solid rgba(255, 255, 255, 1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.02);
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .card:active { transform: scale(0.98); }
+
+        .btn-divine {
+            background: linear-gradient(135deg, var(--red) 0%, #ff8fa3 100%); 
+            color: white; border: none;
+            padding: 16px 28px; border-radius: 25px; font-weight: 700; cursor: pointer;
+            transition: all 0.3s; 
+            box-shadow: 0 10px 25px rgba(255, 77, 109, 0.3);
+            text-transform: uppercase; font-size: 11px; letter-spacing: 2px;
+            width: 100%; position: relative; overflow: hidden;
+        }
+        .btn-divine::after {
+            content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: 0.5s;
+        }
+        .btn-divine:active { transform: scale(0.95); box-shadow: 0 5px 15px rgba(255, 77, 109, 0.2); }
+        .btn-divine:active::after { left: 100%; transition: 0s; }
+        .btn-divine:disabled { background: #e0e0e0; box-shadow: none; cursor: not-allowed; opacity: 0.7; }
+
+        /* --- CLAW MACHINE --- */
+        .machine-container {
+            background: linear-gradient(180deg, rgba(255,255,255,0.9) 0%, rgba(255,238,242,0.9) 100%);
+            border: 4px solid var(--pink); border-radius: 35px; padding: 30px; position: relative;
+            box-shadow: inset 0 0 40px rgba(255, 179, 193, 0.3);
+            text-align: center;
+        }
+        .claw-head { 
+            font-size: 70px; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1)); 
+            transition: transform 0.3s; display: inline-block;
+        }
+        .shaking { animation: clawShake 0.5s infinite linear; }
+        @keyframes clawShake { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(10deg); } 75% { transform: rotate(-10deg); } }
+
+        /* --- GRID SYSTEM --- */
+        .grid-ui { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        .item-tile {
+            background: rgba(255,255,255,0.9); border-radius: 22px; padding: 15px 5px; 
+            font-size: 10px; font-weight: 700; text-align: center;
+            border: 2px solid transparent; transition: 0.3s; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.03);
+        }
+        .item-tile:active { transform: scale(0.9); }
+        
+        .rarity-common { border-color: #eee; }
+        .rarity-rare { border-color: var(--blue); background: #f0f7ff; color: #4a90e2; }
+        .rarity-epic { border-color: var(--purple); background: #fdf5ff; color: var(--purple); }
+        .rarity-legendary { 
+            border-color: var(--gold); background: #fffdf0; color: #d4af37; 
+            animation: pulseGold 2s infinite; 
+        }
+        @keyframes pulseGold { 0% { box-shadow: 0 0 0px var(--gold); } 50% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.6); } 100% { box-shadow: 0 0 0px var(--gold); } }
+
+        /* --- DOCK BAR --- */
+        .dock {
+            position: fixed; bottom: calc(20px + var(--safe-bottom)); left: 50%; transform: translateX(-50%);
+            background: rgba(255,255,255,0.85); backdrop-filter: blur(25px);
+            padding: 15px 40px; border-radius: 50px; display: flex; gap: 35px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.1); border: 1px solid rgba(255,255,255,0.8); 
+            z-index: 2000;
+        }
+        .dock-item { 
+            font-size: 26px; cursor: pointer; transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); 
+            opacity: 0.7;
+        }
+        .dock-item:hover, .dock-item:active { transform: translateY(-10px) scale(1.2); opacity: 1; }
+
+        /* --- PROGRESS BARS --- */
+        progress { width: 100%; height: 10px; border-radius: 6px; appearance: none; overflow: hidden; }
+        progress::-webkit-progress-bar { background: #f0f0f0; }
+        progress::-webkit-progress-value { background: linear-gradient(90deg, var(--red), var(--pink)); transition: width 0.5s ease; }
+        .xp-p::-webkit-progress-value { background: linear-gradient(90deg, var(--gold), #ffeaa7); }
+
+        /* --- TOAST & POPUPS --- */
+        #toast { 
+            position: fixed; top: 110px; left: 50%; transform: translateX(-50%) translateY(-20px); 
+            background: rgba(40, 40, 45, 0.95); color: white; padding: 12px 30px; border-radius: 50px;
+            font-weight: 700; opacity: 0; z-index: 9999; pointer-events: none; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2); font-size: 12px; letter-spacing: 1px;
+        }
+        #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+        #achieve-popup {
+            position: fixed; bottom: 120px; right: -300px; width: 260px;
+            background: rgba(255,255,255,0.95); border-left: 6px solid var(--gold); padding: 20px;
+            border-radius: 15px 0 0 15px; box-shadow: -10px 10px 30px rgba(0,0,0,0.1);
+            transition: 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 3000;
+        }
+
+        /* --- UTILS --- */
+        .icon-lg { font-size: 28px; margin-bottom: 5px; display: block; }
+        @keyframes pulse-glow { 0% { opacity: 0.8; } 50% { opacity: 1; box-shadow: 0 0 20px var(--red); } 100% { opacity: 0.8; } }
+    </style>
+</head>
+<body>
+
+    <div id="particles"></div>
+    <div id="toast">SYSTEM NOTICE</div>
+    
+    <div id="achieve-popup">
+        <small style="color:var(--gold); font-weight:800; letter-spacing:1px;">🏆 ACHIEVEMENT UNLOCKED</small>
+        <p id="achieve-text" style="font-size:12px; font-weight:600; margin-top:5px; color:#444;"></p>
+    </div>
+
+    <div id="intro-overlay">
+        <div style="font-size: 50px; margin-bottom: 20px;"></div>
+        <div class="intro-text" id="t1">Sa <span class="highlight">Caloocan</span> nagsimula ang lahat...<br>Isang kwento ng pag-ibig at teknolohiya.</div>
+        <div class="intro-text" id="t2">Ang iyong <span class="highlight">saturated uniform</span>,<br>ang pixel na bumuo sa aking pangarap.</div>
+        <div class="intro-text" id="t3">Hindi man naging madali ang paghihintay,<br>ikaw pa rin ang 'Home Screen' ng puso ko.</div>
+        <div class="intro-text" id="t4">
+            <h2 style="color:var(--red); margin-bottom:10px;">AngelOS v2.0</h2>
+            Ready to synchronize?<br><br>
+            <button class="btn-divine" style="font-size:14px; padding:18px 40px;" onclick="launchOS()">INITIALIZE LINK_START</button>
+        </div>
+    </div>
+
+    <div class="hud">
+        <div class="rank-container">
+            <div id="rank-tag" class="rank-badge">SYNCING...</div>
+            <div style="font-size:11px; font-weight:700; margin-top:6px; font-family:'JetBrains Mono', monospace;">
+                ⭐ <span id="stars-val">0</span> <span style="opacity:0.3">|</span> LVL <span id="lvl-val">1</span>
+            </div>
+        </div>
+        <div style="text-align:center;">
+            <div id="digital-clock" style="font-size:24px; font-weight:800; color:var(--red); font-family:'JetBrains Mono', monospace; text-shadow: 0 0 10px rgba(255, 77, 109, 0.3);">00:00</div>
+            <div style="width: 100px; margin: auto;"><progress id="xp-bar" class="xp-p" value="0" max="100"></progress></div>
+        </div>
+        <div style="text-align:right; width: 80px;">
+            <div style="font-size:9px; font-weight:800; letter-spacing:1px; margin-bottom:3px;">ENERGY</div>
+            <progress id="milk-bar" value="100" max="100"></progress>
+        </div>
+    </div>
+
+    <div id="os-window">
+        <div id="view-home" class="view active">
+            <h2 style="color:var(--red); font-weight:800; font-size:22px;">Dashboard</h2>
+            <p style="font-size:12px; opacity:0.6; margin-bottom:25px; font-family:'JetBrains Mono';">System Status: IN_LOVE</p>
+            
+            <div class="grid-ui" style="margin-bottom:20px;">
+                <div class="item-tile" onclick="openApp('view-gacha')"><span class="icon-lg">🎡</span>CLAW</div>
+                <div class="item-tile" onclick="openApp('view-shop')"><span class="icon-lg">🏪</span>SHOP</div>
+                <div class="item-tile" onclick="openApp('view-inv')"><span class="icon-lg">🎒</span>SHELF</div>
+                <div class="item-tile" onclick="openApp('view-battle')"><span class="icon-lg">⚔️</span>LABAN</div>
+                <div class="item-tile" onclick="openApp('view-catalog')"><span class="icon-lg">📖</span>LIST</div>
+                <div class="item-tile" onclick="openApp('view-diary')"><span class="icon-lg">📓</span>DIARY</div>
+            </div>
+
+            <div class="card">
+                <p style="font-size:12px; font-weight:700; color:#666; margin-bottom:10px;">DAILY MISSION</p>
+                <p style="font-size:14px; font-weight:600; margin-bottom:15px; font-style:italic;">"Effort is the currency of love."</p>
+                <button class="btn-divine" onclick="doEffort()">SEND LOVE (+30 XP)</button>
+            </div>
+        </div>
+
+        <div id="view-gacha" class="view">
+            <h2 style="color:var(--red)">Kitty Claw</h2>
+            <div class="machine-container" style="margin-top:20px;">
+                <div id="claw-obj" class="claw-head">🏗️</div>
+                <div style="height:20px;"></div>
+                <button id="pull-btn" class="btn-divine" onclick="pullPlushie()">PLAY (50 ⭐)</button>
+            </div>
+            <div id="gacha-result" style="margin-top:20px; font-weight:700; min-height:40px; color:var(--purple);"></div>
+        </div>
+
+        <div id="view-shop" class="view">
+            <h2 style="color:var(--red)">Arsenal</h2>
+            <div id="shop-container" style="margin-top:20px;"></div>
+        </div>
+
+        <div id="view-inv" class="view">
+            <h2 style="color:var(--red)">Collection</h2>
+            <p style="font-size:11px; margin-bottom:15px; opacity:0.6;">Your precious memories.</p>
+            <div id="inv-grid" class="grid-ui"></div>
+        </div>
+
+        <div id="view-battle" class="view">
+            <h2 style="color:var(--red)">Protect Heart</h2>
+            <div class="card" style="margin-top:20px; text-align:center; background: #fff0f3;">
+                <div style="font-size:60px; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.2));">👹</div>
+                <p style="font-weight:800; margin:15px 0; font-size:12px;">MANG-AAGAW HP</p>
+                <progress id="ehp-bar" value="100" max="100" style="height:15px;"></progress>
+                <div style="font-size:10px; font-weight:800; margin-top:5px;"><span id="ehp-val">100</span>%</div>
+            </div>
+            <div id="battle-arsenal" class="grid-ui" style="margin-top:15px;"></div>
+        </div>
+
+        <div id="view-catalog" class="view">
+            <h2 style="color:var(--red)">Index</h2>
+            <p id="completion-rate" style="font-size:12px; font-weight:700; color:var(--gold); margin-bottom:15px;"></p>
+            <div id="catalog-list" style="text-align:left; font-size:11px; columns:2; gap:15px;"></div>
+        </div>
+
+        <div id="view-diary" class="view">
+            <h2 style="color:var(--red)">System Logs</h2>
+            <div id="diary-logs" style="margin-top:20px; text-align:left; font-size:11px; line-height:1.8; font-family:'JetBrains Mono';"></div>
+        </div>
+    </div>
+
+    <div class="dock">
+        <div class="dock-item" onclick="openApp('view-home')">🏠</div>
+        <div class="dock-item" onclick="openApp('view-gacha')">🎡</div>
+        <div class="dock-item" onclick="viewInv()">🎒</div>
+        <div class="dock-item" onclick="openApp('view-battle')">⚔️</div>
+    </div>
+
+    <script>
+        // --- 🎵 ADVANCED AUDIO ENGINE (OFFLINE) ---
+        const AudioSys = (() => {
+            let ctx = null, master = null;
+            let ambientOscs = [];
+
+            const init = () => {
+                if (ctx) return;
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                ctx = new AudioContext();
+                master = ctx.createGain();
+                master.gain.value = 0.3; // Master volume
+                master.connect(ctx.destination);
+                
+                // Start Ambient Music (Ethereal Pad)
+                playAmbient();
+            };
+
+            const playAmbient = () => {
+                const freqs = [110, 164.81, 196, 220]; // A Major 7 chord
+                freqs.forEach((f, i) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.value = f;
+                    
+                    // LFO for "breathing" effect
+                    const lfo = ctx.createOscillator();
+                    const lfoGain = ctx.createGain();
+                    lfo.frequency.value = 0.1 + (i * 0.05);
+                    lfoGain.gain.value = 10;
+                    lfo.connect(lfoGain);
+                    lfoGain.connect(osc.frequency);
+                    lfo.start();
+
+                    gain.gain.value = 0.02; // Very soft background
+                    osc.connect(gain);
+                    gain.connect(master);
+                    osc.start();
+                    ambientOscs.push(osc);
+                });
+            };
+
+            const sfx = (type) => {
+                if (!ctx) init();
+                if (ctx.state === 'suspended') ctx.resume();
+
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(master);
+
+                const now = ctx.currentTime;
+                
+                if (type === 'click') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(800, now);
+                    osc.frequency.exponentialRampToValueAtTime(300, now + 0.1);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                    osc.start(now);
+                    osc.stop(now + 0.1);
+                } 
+                else if (type === 'success') { // High bling
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(500, now);
+                    osc.frequency.linearRampToValueAtTime(1000, now + 0.1);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                    osc.start(now);
+                    osc.stop(now + 0.5);
+                }
+                else if (type === 'error') { // Low buzz
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(150, now);
+                    osc.frequency.linearRampToValueAtTime(100, now + 0.2);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.linearRampToValueAtTime(0, now + 0.2);
+                    osc.start(now);
+                    osc.stop(now + 0.2);
+                }
+                else if (type === 'levelup') { // Ascending arpeggio
+                    [440, 554, 659, 880].forEach((f, i) => {
+                        let o = ctx.createOscillator();
+                        let g = ctx.createGain();
+                        o.connect(g); g.connect(master);
+                        o.type = 'sine';
+                        o.frequency.value = f;
+                        g.gain.setValueAtTime(0.05, now + i*0.1);
+                        g.gain.exponentialRampToValueAtTime(0.001, now + i*0.1 + 0.5);
+                        o.start(now + i*0.1);
+                        o.stop(now + i*0.1 + 0.5);
+                    });
+                }
+            };
+
+            return { init, sfx };
+        })();
+
+        // --- CORE DATABASE ---
+        const MASTER_PLUSHIES = [];
+        const prefixes = ["Angel", "Space", "Classic", "Cyber", "Kawaii", "Vampire", "Royal", "Galaxy", "Pastel", "Golden"];
+        const suffixes = ["Kitty", "Plushie", "Softie", "Partner"];
+        for(let i=1; i<=100; i++) {
+            let rarity = i > 95 ? {t:"Legendary", xp:800, color:"#ffb700"} : i > 80 ? {t:"Epic", xp:300, color:"#9d4edd"} : i > 50 ? {t:"Rare", xp:100, color:"#3498db"} : {t:"Common", xp:40, color:"#888"};
+            MASTER_PLUSHIES.push({ id: i, name: `${prefixes[i % 10]} ${suffixes[i % 4]} #${i}`, rarity: rarity });
+        }
+
+        const SHOP_MOVES = [
+            { id: 0, name: "Uniform Slash", dmg: 35, price: 60, desc: "Saturated strike." },
+            { id: 1, name: "Baby Kick", dmg: 70, price: 180, desc: "Power of my baby ." },
+            { id: 2, name: "Jeepney Ram", dmg: 120, price: 500, desc: "Monument-style smash." },
+            { id: 3, name: "4AM Pulse", dmg: 250, price: 1200, desc: "Energy of puyat." },
+            { id: 4, name: "Saturated Nova", dmg: 600, price: 3000, desc: "The ultimate loyalty." }
+        ];
+
+        // --- STATE ENGINE ---
+        let state = JSON.parse(localStorage.getItem('angelos_transcend_save')) || {
+            stars: 200, lvl: 1, xp: 0, milk: 100, inv: [], ownedMoves: [0], ehp: 100,
+            discovered: [], logs: ["System Initialized."],
+            ranks: ["Classmate", "Seatmate", "Talk Buddy", "Saturated Admirer", "4 AM Warrior", "Loyal Suitor", "Angel's Defender", "Kilig Master", "Almost Husband", "Legendary Hubby"]
+        };
+        for(let i=11; i<=100; i++) state.ranks.push("Eternal Protector Rank " + i);
+
+        // --- LOGIC ---
+        function initParticles() {
+            const container = document.getElementById('particles');
+            const icons = ['❤️', '✨', '🌸', '☁️', '💎'];
+            for(let i=0; i<20; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                p.innerHTML = icons[Math.floor(Math.random()*icons.length)];
+                p.style.left = Math.random() * 100 + 'vw';
+                p.style.animationDelay = Math.random() * 8 + 's';
+                p.style.fontSize = Math.random() * 20 + 10 + 'px';
+                p.style.opacity = Math.random() * 0.5;
+                container.appendChild(p);
+            }
+        }
+
+        let introIdx = 1;
+        function playIntro() {
+            const current = document.getElementById('t' + introIdx);
+            if(current) {
+                current.classList.add('active');
+                if(introIdx < 4) {
+                    setTimeout(() => { 
+                        current.classList.remove('active'); 
+                        introIdx++; 
+                        setTimeout(playIntro, 500); // Slight delay between texts
+                    }, 3500);
+                }
+            }
+        }
+
+        function launchOS() {
+            // 1. Initialize Audio Engine (Important!)
+            AudioSys.init();
+            AudioSys.sfx('levelup'); // Intro Sound
+
+            // 2. Fullscreen Request
+            const docElm = document.documentElement;
+            if (docElm.requestFullscreen) docElm.requestFullscreen().catch(e => console.log(e));
+            else if (docElm.webkitRequestFullscreen) docElm.webkitRequestFullscreen();
+
+            // 3. UI Transition
+            const overlay = document.getElementById('intro-overlay');
+            overlay.style.opacity = '0';
+            overlay.style.transform = 'scale(1.1)';
+            overlay.style.pointerEvents = 'none';
+            
+            setTimeout(() => {
+                overlay.remove();
+                vibe(50);
+                updateUI();
+                addLog("Link Start: Connection established.");
+            }, 1000);
+        }
+
+        function openApp(id) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            if(id === 'view-shop') renderShop();
+            if(id === 'view-battle') renderBattle();
+            if(id === 'view-catalog') renderCatalog();
+            if(id === 'view-diary') renderDiary();
+            AudioSys.sfx('click');
+        }
+
+        function pullPlushie() {
+            if(state.stars < 50) {
+                AudioSys.sfx('error');
+                return toast("Kulang ang Stars! ⭐");
+            }
+            state.stars -= 50;
+            const btn = document.getElementById('pull-btn');
+            const claw = document.getElementById('claw-obj');
+            const res = document.getElementById('gacha-result');
+            
+            btn.disabled = true; 
+            claw.classList.add('shaking');
+            res.innerText = "CALIBRATING CLAW..."; 
+            AudioSys.sfx('click');
+
+            setTimeout(() => {
+                claw.classList.remove('shaking');
+                const win = MASTER_PLUSHIES[Math.floor(Math.random() * 100)];
+                state.inv.push(win);
+                if(!state.discovered.includes(win.id)) {
+                    state.discovered.push(win.id);
+                    addLog(`New Memory: ${win.name}`);
+                }
+                res.innerHTML = `GOTCHA! <br><span style="color:${win.rarity.color}; font-size:14px;">${win.name}</span>`;
+                claw.innerText = "🎁"; 
+                btn.disabled = false;
+                
+                AudioSys.sfx('success');
+                vibe([50, 50, 50]);
+                save(); updateUI(); 
+            }, 2000);
+        }
+
+        function renderShop() {
+            const container = document.getElementById('shop-container');
+            container.innerHTML = "";
+            SHOP_MOVES.forEach(m => {
+                const owned = state.ownedMoves.includes(m.id);
+                container.innerHTML += `
+                    <div class="card" style="display:flex; justify-content:space-between; align-items:center; padding:15px; margin-bottom:10px;">
+                        <div style="text-align:left;">
+                            <b style="color:var(--red)">${m.name}</b><br>
+                            <small style="font-size:10px; opacity:0.6;">${m.desc} | DMG: ${m.dmg}</small>
+                        </div>
+                        ${owned ? `<span style="font-size:10px; font-weight:800; color:#ccc;">ACQUIRED</span>` : `<button class="btn-divine" style="padding:10px 15px; font-size:10px; width:auto;" onclick="buyMove(${m.id}, ${m.price})">${m.price} ⭐</button>`}
+                    </div>
+                `;
+            });
+        }
+
+        function buyMove(id, price) {
+            if(state.stars >= price) {
+                state.stars -= price; state.ownedMoves.push(id);
+                AudioSys.sfx('success');
+                save(); renderShop(); updateUI(); toast("Weapon Acquired! ⚔️");
+            } else {
+                AudioSys.sfx('error');
+                toast("Insufficient Funds");
+            }
+        }
+
+        function viewInv() {
+            openApp('view-inv');
+            const grid = document.getElementById('inv-grid');
+            grid.innerHTML = state.inv.length === 0 ? "<p style='grid-column:1/4; opacity:0.5; padding:20px; text-align:center;'>Shelf is empty.</p>" : "";
+            state.inv.forEach((item, idx) => {
+                grid.innerHTML += `
+                    <div class="item-tile rarity-${item.rarity.t.toLowerCase()}">
+                        <div style="font-size:20px; margin-bottom:5px;">🧸</div>
+                        ${item.name}<br><small style="opacity:0.7;">${item.rarity.t}</small>
+                        <button onclick="sell(${idx})" style="width:100%; border:none; background:rgba(0,0,0,0.1); color:#555; font-size:9px; border-radius:5px; margin-top:5px; padding:4px; cursor:pointer;">SELL ${item.rarity.xp}XP</button>
+                    </div>`;
+            });
+        }
+
+        function sell(idx) {
+            const item = state.inv[idx];
+            state.xp += item.rarity.xp;
+            state.inv.splice(idx, 1);
+            AudioSys.sfx('success');
+            checkLevel(); viewInv(); updateUI(); save();
+        }
+
+        function renderBattle() {
+            const arsenal = document.getElementById('battle-arsenal');
+            arsenal.innerHTML = "";
+            state.ownedMoves.forEach(mid => {
+                const m = SHOP_MOVES.find(x => x.id === mid);
+                arsenal.innerHTML += `<button class="btn-divine" style="font-size:9px; padding:15px 5px;" onclick="attack(${m.dmg}, '${m.name}')">${m.name}</button>`;
+            });
+        }
+
+        function attack(dmg, name) {
+            if(state.milk < 20) {
+                AudioSys.sfx('error');
+                return toast("Low Energy! Drink Milk 🥛");
+            }
+            let isCrit = Math.random() < 0.2; // Increased crit chance
+            let finalDmg = isCrit ? dmg * 2 : dmg;
+            state.ehp -= finalDmg; state.milk -= 20;
+            
+            // Animation for damage
+            const bar = document.getElementById('ehp-bar');
+            bar.style.filter = "brightness(2)";
+            setTimeout(()=> bar.style.filter = "none", 100);
+
+            if(isCrit) {
+                AudioSys.sfx('success'); 
+                toast(`CRITICAL HIT! ${finalDmg} DMG`);
+            } else {
+                AudioSys.sfx('click');
+            }
+            
+            if(state.ehp <= 0) {
+                state.ehp = 100; state.stars += 150; state.xp += 50;
+                addLog("Enemy defeated. Relationship strengthened.");
+                checkLevel(); toast("Victory! +150 ⭐");
+                AudioSys.sfx('levelup');
+            }
+            save(); updateUI();
+        }
+
+        function doEffort() {
+            if(state.milk >= 15) {
+                state.xp += 30; state.milk -= 15;
+                checkLevel(); updateUI(); save(); 
+                AudioSys.sfx('success');
+            } else {
+                AudioSys.sfx('error');
+                toast("Rest ka muna. 🥛");
+            }
+        }
+
+        function checkLevel() {
+            while(state.xp >= 100) {
+                state.lvl++; state.xp -= 100;
+                addLog(`SYSTEM UPGRADE: Level ${state.lvl}`);
+                unlockAchievement(`New Rank: ${state.ranks[state.lvl-1]}`);
+                AudioSys.sfx('levelup');
+                vibe([100, 50, 100]);
+            }
+        }
+
+        function renderCatalog() {
+            const list = document.getElementById('catalog-list');
+            document.getElementById('completion-rate').innerText = `DATABASE: ${state.discovered.length}/100`;
+            list.innerHTML = MASTER_PLUSHIES.map(p => {
+                const found = state.discovered.includes(p.id);
+                return `<div style="opacity:${found?1:0.4}; margin-bottom:5px;">${found ? '❤️ '+p.name : '🔒 LOCKED'}</div>`;
+            }).join('');
+        }
+
+        function renderDiary() {
+            const logs = document.getElementById('diary-logs');
+            logs.innerHTML = state.logs.slice().reverse().map(l => `<div style="border-left:3px solid var(--pink); padding-left:12px; margin-bottom:12px; background:rgba(255,255,255,0.5); padding:8px; border-radius:0 10px 10px 0;">${l}</div>`).join('');
+        }
+
+        function updateUI() {
+            document.getElementById('stars-val').innerText = state.stars;
+            document.getElementById('lvl-val').innerText = state.lvl;
+            document.getElementById('xp-bar').value = state.xp;
+            document.getElementById('milk-bar').value = state.milk;
+            document.getElementById('ehp-val').innerText = state.ehp;
+            document.getElementById('ehp-bar').value = state.ehp;
+            document.getElementById('rank-tag').innerText = (state.ranks[state.lvl-1] || "TRANSCENDENT").toUpperCase();
+            
+            // Dynamic Sky Colors
+            const hour = new Date().getHours();
+            if(hour >= 18 || hour < 5) document.body.style.background = "linear-gradient(135deg, #2d2b42 0%, #4a2b38 100%)";
+            else if(hour >= 16) document.body.style.background = "linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%)";
+            else document.body.style.background = "linear-gradient(135deg, #fff0f3 0%, #ffe5ec 100%)";
+        }
+
+        function addLog(msg) {
+            const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            state.logs.push(`<span style="color:var(--red); font-weight:bold;">${time}</span> ${msg}`);
+            if(state.logs.length > 50) state.logs.shift();
+        }
+
+        function unlockAchievement(text) {
+            const pop = document.getElementById('achieve-popup');
+            document.getElementById('achieve-text').innerText = text;
+            pop.style.right = '0px';
+            setTimeout(() => { pop.style.right = '-300px'; }, 4000);
+        }
+
+        function save() { localStorage.setItem('angelos_transcend_save', JSON.stringify(state)); }
+        
+        function toast(m) { 
+            const t = document.getElementById('toast'); 
+            t.innerText = m; 
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2500); 
+        }
+        
+        function vibe(ms) { if(navigator.vibrate) navigator.vibrate(ms); }
+
+        // --- GLOBAL EVENT LISTENERS ---
+        document.addEventListener('click', (e) => {
+            // Check for buttons/interactive elements for haptics
+            if (e.target.tagName === 'BUTTON' || e.target.classList.contains('item-tile') || e.target.classList.contains('dock-item') || e.target.closest('.card')) {
+                if(navigator.vibrate) navigator.vibrate(10);
+            }
+        });
+
+        // Clock Loop
+        setInterval(() => {
+            const d = new Date();
+            document.getElementById('digital-clock').innerText = d.getHours().toString().padStart(2,'0') + ":" + d.getMinutes().toString().padStart(2,'0');
+            if(state.milk < 100) { state.milk = Math.min(100, state.milk + 1); updateUI(); }
+        }, 1000);
+
+        // --- INIT ---
+        initParticles();
+        playIntro();
+        updateUI();
+        
+        // PWA Service Worker (Optional if present)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').catch(e => console.log('Offline mode disabled'));
+            });
+        }
+    </script>
+</body>
+</html>
