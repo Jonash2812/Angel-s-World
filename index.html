@@ -281,6 +281,21 @@
             }
         }
 
+        
+        function launchOS() {
+UISound.playClick(); // Dito magsisimulang mabuhay ang audio context
+    ProAudio.init(); 
+    ProAudio.toggle(true); 
+
+        // NEXT   
+            document.getElementById('intro-overlay').style.transform = 'scale(1.5)';
+            document.getElementById('intro-overlay').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('intro-overlay').remove();
+                vibe(50);
+                updateUI();
+            }, 1000);
+        }
 
 // --- AUDIO ENGINE START ---
 const UISound = (() => {
@@ -309,23 +324,8 @@ const UISound = (() => {
     };
 })();
 // --- AUDIO ENGINE END ---
-        
-        
-        function launchOS() {
-UISound.playClick(); // Dito magsisimulang mabuhay ang audio context
-    ProAudio.init(); 
-    ProAudio.toggle(true); 
 
-        // NEXT   
-            document.getElementById('intro-overlay').style.transform = 'scale(1.5)';
-            document.getElementById('intro-overlay').style.opacity = '0';
-            setTimeout(() => {
-                document.getElementById('intro-overlay').remove();
-                vibe(50);
-                updateUI();
-            }, 1000);
-        }
-
+        
         // --- CORE FUNCTIONS ---
         function openApp(id) {
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
