@@ -510,6 +510,18 @@ if ('serviceWorker' in navigator) {
             .catch(err => console.log('Offline System: Failed', err));
     });
 }
+
+document.addEventListener('click', (e) => {
+    // Check kung button o tile ang pinindot
+    if (e.target.tagName === 'BUTTON' || e.target.classList.contains('item-tile') || e.target.classList.contains('dock-item')) {
+        
+        UISound.playClick(); // Patunugin ang sound
+        
+        if (navigator.vibrate) {
+            navigator.vibrate(15); // Samahan ng maikling vibrate para sa Android
+        }
+    }
+});
         
     </script>
 </body>
