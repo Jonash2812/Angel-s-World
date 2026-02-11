@@ -282,11 +282,23 @@
         }
 
         
-        function launchOS() {
+        function launchOS() 
+        
+   function launchOS() {
+    // I-request ang fullscreen mode
+    const docElm = document.documentElement;
+    if (docElm.requestFullscreen) {
+        docElm.requestFullscreen();
+    } else if (docElm.webkitRequestFullscreen) { /* Safari/iOS */
+        docElm.webkitRequestFullscreen();
+    }
+
+    // Yung dati mong code...                   
+        {
 UISound.playClick(); // Dito magsisimulang mabuhay ang audio context
     ProAudio.init(); 
     ProAudio.toggle(true); 
-
+        }
         // NEXT   
             document.getElementById('intro-overlay').style.transform = 'scale(1.5)';
             document.getElementById('intro-overlay').style.opacity = '0';
